@@ -1,0 +1,196 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 1: Wav Files**
+    Username: arneyh
+    Date: 12-01-2021
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   80   |    80    | Technical quality (see point deductions in code) |
+    |   10   |    10    | Coding standard compliance                       |
+    |    5   |     5    | Following submission instructions                |
+    |    5   |     5    | Program clarity                                  |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+# WavGenerator.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 1
+ * Name: Hudson Arney
+ * Created: 11/29/2021
+ * Updated: 12/6/2021
+ */
+package arneyh;
+
+import java.util.Scanner;
+import java.util.ArrayList;
+import us.msoe.csse.taylor.audio.WavFile;
+
+/**
+ * WavGenerator Class
+ * Allows you to type in multiple options to work with .wav files
+ * Option 1 allows you to create a new file that reverses the sound of the file selected
+ * Option 2 allows you to create a new file which play a certain frequency that the user selects
+ * for 1 second
+ */
+public class WavGenerator {
+    public static void main(String[] args) {
+        System.out.println("Welcome to Hudson's WavGenerator!");
+        String num;
+        boolean tryAgain = true;
+
+        do {
+~~~~ Java highlight
+            Scanner in = new Scanner(System.in);
+~~~~
+!!! FEEDBACK:  Connect only one scanner to the keyboard
+    By instantiating this scanner within the loop, you end up creating
+    a new scanner each time through the loop.
+
+    You should only create one `Scanner` to be connected to the keyboard.
+    Doing so may lead to unexpected behavior and could present a security
+    risk.  You can read about the technical details [here](https://www.securecoding.cert.org/confluence/display/java/FIO06-J.+Do+not+create+multiple+buffered+wrappers+on+a+single+byte+or+character+stream).
+
+~~~~ Java highlight
+            System.out.println("Please enter a number");
+~~~~
+!!! minus: -1 Menu should explain how to use the program
+    It would be good to include some text indicating what the three options do.
+    Right now it is pretty difficult for someone to know what to do without
+    reading your source code.
+
+~~~~ Java
+            num = in.nextLine();
+
+            if(num.equals("0")) {
+                System.out.println("The program will now end!");
+                tryAgain = false;
+            } else if (num.equals("1")) {
+                option1(in);
+            } else if (num.equals("2")) {
+                option2(in);
+            } else {
+                System.out.println("Number entered is not 0, 1, or 2");
+            }
+        } while(tryAgain);
+    }
+
+~~~~ Java highlight
+    private static void option1(Scanner in) {
+~~~~
+!!! minus: -1 Prefer method names descriptive of functionality
+    It is preferable to have your method names describe the functionality they
+    preform rather than the role they serve in your program.  As written,
+    there are few hints about what each option does (without requiring the
+    the reader to compile and run the code in their head).
+
+    By renaming `option1()` to be `reverseWavFile()`, it makes the purpose of
+    your code more obvious.
+
+~~~~ Java
+        System.out.println("Please enter a file name");
+        String fileOption = in.next();
+        String originalOption = "sounds/" + fileOption + ".wav";
+
+        WavFile sound = new WavFile(originalOption);
+
+        ArrayList&lt&#xFEFF;Double> original = new ArrayList&lt&#xFEFF;>(sound.getSamples());
+        ArrayList&lt&#xFEFF;Double> reverse = new ArrayList&lt&#xFEFF;>();
+
+~~~~ Java highlight
+        for(int i = original.size() - 1; i >= 0; i--) {
+            reverse.add(original.get(i));
+        }
+~~~~
+!!! FEEDBACK: Alternative: `Collections.reverse()`
+    Using library code would make this even easier. The `Collections` class
+    provides several utility methods for working with collections. Here the
+    <a href="https://javadoc.taylorial.com/java.base/util/Collections.html#reverse(java.util.List)">`Collections.reverse()`</a>
+    method would do just what we needed.
+
+~~~~ Java
+
+~~~~ Java highlight
+        String reverseOption = "sounds/" + fileOption + "Rev.wav";
+~~~~
+!!! FEEDBACK: Parameterizing path names
+    Whenever you find yourself using the same value in multiple places it
+    is a good time to consider if it would make sense to make it a constant.
+    In this case, you have `"sounds/"` in multiple places. If the location
+    of the sound files changes, you'd need to make multiple changes to your
+    code. An alternative would be to create a class constant in the class
+    with the `main` method and then use it in place of hard-coded
+    string literals.
+
+~~~~ Java
+        WavFile reversed = new WavFile(reverseOption, sound.getNumChannels(),
+                sound.getNumFrames(), sound.getValidBits(), sound.getSampleRate());
+
+        reversed.setSamples(reverse);
+        reversed.close();
+        System.out.println("Option 1 has been complete. You now have a reversed file!");
+    }
+
+~~~~ Java highlight
+    private static void option2(Scanner in) {
+~~~~
+!!! MINUS: -2 Method Javadoc requirements
+    The [Coding Standard](https://msoe.us/taylor/cs1021/CodingStandard) requires
+    the following:
+    <blockquote>Method comments - other than the exceptions below, all methods are commented using Javadoc syle
+     * However, getters and setters which typically are not commented.
+     * The `main` method is documented if command line arguments are used.
+
+    ```
+    /**
+     * This method prints out "Hello" to the person given and
+     * returns the number of letters in the person's name.
+     *
+     * @param name The person to who to say hello.
+     * @return The number of characters in the person's name.
+     */
+    ```
+    </blockquote>
+
+~~~~ Java
+        System.out.println("Please enter a file name");
+        String fileOption = "sounds/" + in.next() + ".wav";
+        System.out.println("Now please enter a frequency");
+        double frequency = in.nextDouble();
+        ArrayList&lt&#xFEFF;Double> original = new ArrayList&lt&#xFEFF;>();
+
+        final int numChannels = 1;
+        final int numFrames = 8000;
+        final int validBits = 8;
+        final int sampleRates = 8000;
+
+        WavFile sample = new WavFile(fileOption, numChannels, numFrames, validBits, sampleRates);
+        double sampleRate = sample.getSampleRate();
+        for(int i = 0; i &lt&#xFEFF; sampleRate - 1; i++) {
+            original.add(Math.sin(2 * Math.PI * i * (frequency/sampleRate)));
+        }
+        System.out.println("Option 2 is now complete. You now have a specific frequency!");
+
+        sample.setSamples(original);
+        sample.close();
+    }
+}
+
+~~~~
+
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>

@@ -1,0 +1,726 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 7: Shapes Revisited**
+    Username: arneyh
+    Date: 01-31-2022
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   70   |    70    | Technical quality (see point deductions in code) |
+    |   20   |    15    | Instructor tests                                 |
+    |   10   |    10    | Coding standard compliance and program clarity   |
+    |    5   |     5    | Following submission instructions                |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+# Circle.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * Circle class is a specific type of shape that has
+ * additional characteristics (a height and width)
+ */
+public class Circle extends Shape {
+
+    private final double radius;
+    private final double width;
+    private final double height;
+
+    /**
+     * Circle constructor that takes in the basic shape
+     * characteristics but adds a radius
+~~~~ Java highlight
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param radius the length from the middle of the circle to the outer edge
+     * @param color gives the circle a color characteristic
+     */
+    public Circle(double x, double y, double radius, Color color) {
+        super(x, y, color);
+~~~~
+!!! minus: -1 Incorrect coordinates
+    You need to adjust the x, y coordinate values because this constructor
+    accepts x and y that represent the center of the circle whereas the
+    the x and y in the `Shape` class represents the lower left corner of the
+    shape.
+
+~~~~ Java
+        this.radius = radius;
+        this.width = radius;
+        this.height = radius;
+    }
+
+    /**
+     * Circle constructor that uses a width and height
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param width width of the circle
+     * @param height height of the circle
+     * @param color Color of the circle
+     */
+    public Circle(double x, double y, double width, double height, Color color) {
+        super(x, y, color);
+        this.width = width;
+        this.height = height;
+~~~~ Java highlight
+        this.radius = width / 2;
+~~~~
+!!! minus: -1 Should not allow radius to be non-negative
+    You should throw an exception if the radius is not positive.
+
+~~~~ Java
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        setPenColor(plotter);
+        plotter.moveTo(x + radius, y);
+        final int degrees = 360;
+        for(int i = 0; i &lt&#xFEFF; degrees; i++) {
+            plotter.drawTo(x + radius * Math.cos(Math.toRadians(i)),
+                    y + radius * Math.sin(Math.toRadians(i)));
+        }
+    }
+}
+
+~~~~
+
+# LabeledRectangle.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * LabeledRectangle class is a specific type of Rectangle that has
+ * additional characteristics (a name)
+ */
+public class LabeledRectangle extends Rectangle {
+    private final String name;
+
+    /**
+     * Labeled Rectangle constructor that takes in the Rectangle
+     * characteristics but adds a name
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param width the length from the nearest x value of a point to last x value of a point
+     * @param height the length from the nearest y value of a point to the last y value of a point
+     * @param color gives the labeled rectangle a color characteristic
+     * @param name gives a name characteristic to the labeled rectangle
+     */
+    public LabeledRectangle(double x, double y, double width,
+                            double height, Color color, String name) {
+        super(x, y, width, height, color);
+        this.name = name;
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        super.draw(plotter);
+        plotter.printAt(x, y, name);
+    }
+}
+
+~~~~
+
+# LabeledTriangle.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * LabeledTriangle class is a specific type of Triangle that has
+ * additional characteristics (a name)
+ */
+public class LabeledTriangle extends Triangle {
+    private final String name;
+
+    /**
+     * Labeled Triangle constructor that takes in the Triangle
+     * characteristics but adds a name
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param base the labeled triangles bottom line
+     * @param height the labeled triangle's length from the top to bottom
+     * @param color gives the labeled triangle a color characteristic
+     * @param name gives a name characteristic to the labeled rectangle
+     */
+    public LabeledTriangle(double x, double y, double base,
+                           double height, Color color, String name) {
+        super(x, y, base, height, color);
+        this.name = name;
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        super.draw(plotter);
+        plotter.printAt(x, y, name);
+    }
+}
+
+~~~~
+
+# Point.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * Point Class
+ * Very basic class similar to the other shape subclasses
+ * Has the ability to draw the point on the canvas
+ */
+public class Point extends Shape {
+
+    /**
+     * Point Constructor that takes coordinates and a color to make a spot on the graph
+     * @param x x-coordinate for the point
+     * @param y y-coordinate for the point
+     * @param color a color given for the point
+     */
+    public Point(double x, double y, Color color) throws IllegalArgumentException {
+        super(x, y, color);
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        setPenColor(plotter);
+        plotter.moveTo(x, y);
+        plotter.drawPoint(x, y);
+    }
+}
+
+~~~~
+
+# Rectangle.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * Rectangle class is a specific type of shape that has
+ * additional characteristics (a height and width)
+ */
+public class Rectangle extends Shape {
+    protected final double height;
+    protected final double width;
+
+    /**
+     * Rectangle constructor that takes in the basic shape
+     * characteristics but adds a width and height
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param width the length from the nearest x value of a point to last x value of a point
+     * @param height the length from the nearest y value of a point to the last y value of a point
+     * @param color gives the rectangle a color characteristic
+     */
+    public Rectangle(double x, double y, double width, double height, Color color) {
+        super(x, y, color);
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        setPenColor(plotter);
+        plotter.moveTo(x, y);
+        plotter.drawTo(x + width, y);
+        plotter.drawTo(x + width, y + height);
+        plotter.drawTo(x, y + height);
+        plotter.drawTo(x, y);
+    }
+}
+~~~~
+
+# Shape.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * Shape Class
+ * Used for all other classes as they are all shapes.
+ * The default things every shape has is a color, as well as
+ * an x and y value
+ */
+public abstract class Shape {
+    private Color color;
+    protected final double x;
+    protected final double y;
+
+    /**
+     * Shape constructor that takes in an x value,
+     * y value, and color
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param color gives the shape a color characteristic
+     */
+    public Shape(double x, double y, Color color) throws IllegalArgumentException {
+~~~~ Java highlight
+        if(x &lt&#xFEFF; 0 || y &lt&#xFEFF; 0) {
+            throw new IllegalArgumentException("Coordinate is less than 0.");
+        }
+~~~~
+!!! minus: -1 Should not throw exception here
+    You were required to throw an `IllegalArgumentException` if
+    a dimension was non-positive.  The x, y coordinates are not dimensions.  As
+    a result, you should not throw an exception.
+
+~~~~ Java
+        this.x = x;
+        this.y = y;
+        this.color = color;
+    }
+
+    /**
+     * Draw method that takes the characteristics of
+     * a shape and applies them to a window
+     * @param plotter plotter from the WinPlotterFX class that allows the program
+     *                to draw
+     */
+    public abstract void draw(WinPlotterFX plotter);
+
+    /**
+     * Set Pen Color method that will draw the shape in a certain color.
+     * @param plotter from the WinPlotterFX class
+     */
+    public void setPenColor(WinPlotterFX plotter) {
+        plotter.setPenColor(color.getRed(), color.getGreen(), color.getBlue());
+    }
+
+    /**
+     * Setter method for the color of a shape
+     * @param color color of a shape
+     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
+}
+
+
+
+~~~~
+
+# ShapeLoaderApp.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.application.Application;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import java.io.IOException;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+
+/**
+ * ShapeLoaderApp Class
+ * That creates a TextInputDialog for the user to select a file
+ * Once a file is selected a plot will be displayed with the various
+ * shapes selected from the File chosen.
+ * There are various error checks throughout the code.
+ */
+public class ShapeLoaderApp extends Application {
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    /**
+     * Use the Shape class and its descendants to draw a face.
+     * @param stage Default stage given to a JavaFX program.
+     */
+    @Override
+    public void start(Stage stage) {
+        WinPlotterFX plot = new WinPlotterFX();
+        try {
+            TextInputDialog textInputDialog = new TextInputDialog();
+            textInputDialog.setContentText("Enter a filename: ");
+            Optional&lt&#xFEFF;String> textBox = textInputDialog.showAndWait();
+            Scanner input = new Scanner(Files.newInputStream(Path.of(textBox.get())));
+            plot.setWindowTitle(input.nextLine());
+            plot.setWindowSize(input.nextInt(), input.nextInt());
+            Color backGround = stringToColor(input.next());
+            plot.setBackgroundColor(backGround.getRed(),
+                    backGround.getGreen(), backGround.getBlue());
+            List&lt&#xFEFF;Shape> shape = readShapes(input);
+            drawShapes(plot, shape);
+            plot.showPlotter();
+        } catch(NumberFormatException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("Picture Size Error");
+            alert.setContentText("A non-integer was used for the files size");
+            alert.showAndWait();
+        } catch(InputMismatchException e) {
+            System.out.println("Input Mismatch Exception");
+        } catch(IllegalArgumentException e) {
+            plot.showPlotter();
+            System.out.println("Illegal Argument Exception");
+        } catch(IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText("File Reading Error");
+            alert.setContentText("The file you are trying to reach does \n" +
+                    "not exist or has illegal inputs");
+            alert.showAndWait();
+        }
+    }
+
+~~~~ Java highlight
+    private Shape parseShape(Scanner input) throws IllegalFormatException {
+~~~~
+!!! MINUS: -2 Must accept a `String`
+    The assignment stated that this method
+    <blockquote>Accepts a String that should contain one line from the input file and returns an instance of the appropriate shape.</blockquote>
+
+!!! MINUS: -1 Should be a class method
+    This method was required to be a class method.
+
+~~~~ Java
+        String type = input.next();
+        Shape shape = null;
+        try {
+            if (type.equalsIgnoreCase("P:")) {
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+                shape = new Point(x, y, color);
+            } else if (type.equalsIgnoreCase("C:")) {
+~~~~ Java highlight
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+~~~~
+!!! minus: Avoiding duplicate code
+    One technique of a good software developer is to minimize duplicate code.
+    In each of these cases, you have to read the coordinates and color of
+    the shape.  An alternative approach would be to read the type of shape
+    along with the x, y, and color values.  Then you could read any additional
+    information for the particular shape and create it.
+
+~~~~ Java
+                double radius = input.nextDouble();
+                shape = new Circle(x, y, radius, color);
+            } else if (type.equalsIgnoreCase("R:")) {
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+                double width = input.nextDouble();
+                double height = input.nextDouble();
+                shape = new Rectangle(x, y, width, height, color);
+            } else if (type.equalsIgnoreCase("T:")) {
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+                double base = input.nextDouble();
+                double height = input.nextDouble();
+                shape = new Triangle(x, y, base, height, color);
+            } else if (type.equalsIgnoreCase("LR:")) {
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+                double width = input.nextDouble();
+                double height = input.nextDouble();
+                String name = input.nextLine();
+                shape = new LabeledRectangle(x, y, width, height, color, name);
+            } else if (type.equalsIgnoreCase("LT:")) {
+                double x = input.nextDouble();
+                double y = input.nextDouble();
+                Color color = stringToColor(input.next());
+                double base = input.nextDouble();
+                double height = input.nextDouble();
+                String name = input.nextLine();
+                shape = new LabeledTriangle(x, y, base, height, color, name);
+            }
+        } catch(NumberFormatException e) {
+            System.out.println("Numbers Inputted for the coordinates of the shapes are incorrect.");
+        }
+
+        return shape;
+    }
+
+~~~~ Java highlight
+    private static Color stringToColor(String hexTriple) throws InputMismatchException {
+~~~~
+!!! MINUS: -1 Should be a class method
+    This method was required to be a class method.
+
+~~~~ Java
+
+        final int index1 = 1;
+        final int index3 = 3;
+        final int index5 = 5;
+        final int index7 = 7;
+        final int base16 = 16;
+        final int correctLength = 7;
+
+        if(hexTriple.indexOf('#') != 0 || hexTriple.length() != correctLength) {
+            throw new InputMismatchException("Invalid Color Format Inputted.");
+        }
+
+        for(int i = 1; i &lt&#xFEFF; hexTriple.length(); i++) {
+            if(Character.digit(hexTriple.charAt(i), base16) == -1) {
+                throw new InputMismatchException("Invalid Hex Number Entered.");
+            }
+        }
+
+        int r = Integer.valueOf(hexTriple.substring(index1, index3), base16);
+        int g = Integer.valueOf(hexTriple.substring(index3, index5), base16);
+        int b = Integer.valueOf(hexTriple.substring(index5, index7), base16);
+
+        return Color.rgb(r, g, b);
+    }
+
+~~~~ Java highlight
+    private List&lt&#xFEFF;Shape> readShapes(Scanner input) {
+~~~~
+!!! MINUS: -2 Method Javadoc requirements
+    The [Coding Standard](https://csse.msoe.us/cs1021/codingstandard) requires
+    the following:
+    <blockquote>Method comments - All methods are commented using Javadoc style, with the following exceptions:
+     * Getters and setters which typically are not commented.
+     * The `main` method is typically only documented if command line arguments are used.
+
+    ```
+    /**
+     * This method prints out "Hello" to the person given and
+     * returns the number of letters in the person's name.
+     *
+     * @param name The person to who to say hello.
+     * @return The number of characters in the person's name.
+     */
+    ```
+    </blockquote>
+
+~~~~ Java
+        List&lt&#xFEFF;Shape> shape = new ArrayList&lt&#xFEFF;>();
+        while(input.hasNextLine()) {
+            try {
+                shape.add(parseShape(input));
+            } catch(IllegalFormatException e) {
+                System.out.println("Illegal Format Exception");
+            }
+        }
+        return shape;
+    }
+
+    private void drawShapes(WinPlotterFX plot, List&lt&#xFEFF;Shape> shapes) {
+~~~~ Java highlight
+        for (Shape shape : shapes) {
+            shape.setPenColor(plot);
+            shape.draw(plot);
+        }
+~~~~
+!!! FEEDBACK: Alternative: `.forEach()`
+    Based on what we've learned this week with functional programming, we
+    could make use of the `forEach()` method in the `Collection` interface
+    to rewrite this as:
+
+    ```
+    shapes.forEach(shape -> shape.draw(plotter));
+    ```
+
+    You should not need to set the pen color since that should be done in
+    the shape's draw method.
+
+~~~~ Java
+    }
+
+}
+
+
+
+~~~~
+
+# Triangle.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 7 - Shaped Revisited
+ * Name: Hudson Arney
+ * Created: 1/23/2022
+ * Updated: 1/30/2022
+ */
+
+package arneyh;
+
+import edu.msoe.winplotterfx.WinPlotterFX;
+import javafx.scene.paint.Color;
+
+/**
+ * Triangle class is a specific type of shape that has
+ * additional characteristics (a height and base)
+ */
+public class Triangle extends Shape {
+    protected final double base;
+    protected final double height;
+
+    /**
+     * Triangle constructor that takes in the basic shape
+     * characteristics but adds a base and height
+     * @param x default point on the x-axis
+     * @param y default point on the y-axis
+     * @param base the triangles bottom line
+     * @param height the triangle's length from the top to bottom
+     * @param color gives the triangle a color characteristic
+     */
+    public Triangle(double x, double y, double base, double height, Color color) {
+        super(x, y, color);
+        this.base = base;
+        this.height = height;
+    }
+
+    @Override
+    public void draw(WinPlotterFX plotter) {
+        setPenColor(plotter);
+        plotter.moveTo(x, y);
+        plotter.drawTo(x + base, y);
+        plotter.drawTo(x + base / 2, y + height);
+        plotter.drawTo(x, y);
+    }
+}
+~~~~
+
+
+# Instructor Tests
+
+!!! MINUS: -1 Failed test: stringToColor() with invalid color
+    Failed test: stringToColor() with invalid color.
+    
+    Your implementation threw a `class java.lang.NullPointerException` when passed null; however, you should have thrown an `InputMismatchException`.
+
+!!! MINUS: -1 Failed test: parseShape() with non-positive shape dimension
+    Failed test: parseShape() with non-positive shape dimension.
+    
+    Your implementation did not throw an `IllegalArgumentException` when passed `C: 0 0 #000000 0`.
+
+!!! MINUS: -1 Failed test: parseShape() with non-positive shape dimension
+    Failed test: parseShape() with non-positive shape dimension.
+    
+    Your implementation did not throw an `IllegalArgumentException` when passed `C: 0 0 #000000 -2`.
+
+!!! MINUS: -1 Failed test: parseShape() with non-positive shape dimension
+    Failed test: parseShape() with non-positive shape dimension.
+    
+    Your implementation did not throw an `IllegalArgumentException` when passed `T: 0 0 #000000 5 -2`.
+
+!!! MINUS: -1 Failed test: parseShape() with non-positive shape dimension
+    Failed test: parseShape() with non-positive shape dimension.
+    
+    Your implementation did not throw an `IllegalArgumentException` when passed `R: 0 0 #000000 -2 5`.
+
+!!! MINUS: -1 Failed test: parseShape() with invalid shape name
+    Failed test: parseShape() with invalid shape name.
+    
+    Your implementation did not throw an exception when passed `X: 0 0 #000000 10`.
+
+!!! MINUS: -1 Failed test: parseShape() with invalid shape name
+    Failed test: parseShape() with invalid shape name.
+    
+    Your implementation did not throw an exception when passed `happy: 0 0 #000000 2`.
+
+!!! MINUS: -1 Failed test: parseShape() with invalid shape name
+    Failed test: parseShape() with invalid shape name.
+    
+    Your implementation did not throw an exception when passed `T T: 0 0 #000000 5 -2`.
+
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>

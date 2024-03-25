@@ -1,0 +1,529 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 3: Interfaces**
+    Username: arneyh
+    Date: 01-03-2022
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   85   |    85    | Technical quality (see point deductions in code) |
+    |   10   |    10    | Coding standard compliance and program clarity   |
+    |    5   |     5    | Following submission instructions                |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+# Article.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 3
+ * Name: Hudson Arney
+ * Created: 12/14/2021
+ * Updated:
+ */
+
+package arneyh;
+
+import java.io.PrintStream;
+import java.util.Scanner;
+
+/**
+ * Article class is a specific type of reference that also holds its own characteristics
+ * from other references
+ */
+public class Article extends Reference {
+    private int endingPage;
+    private int startingPage;
+    private String journal;
+
+    /**
+     * Prints out a prompt for when a new article is created.
+     * @param out prints out the output for a new prompt
+     * @param in Scanner object that allows the user to input
+     */
+    public void promptToInitialize(PrintStream out, Scanner in) {
+        out.print("Enter the author of the reference\n");
+        author = in.nextLine();
+        out.print("Enter the title of the reference\n");
+        title = in.nextLine();
+        out.print("Enter the copyright year of the reference\n");
+        publicationYear = Integer.parseInt(in.nextLine());
+        out.print("Enter the title of the journal\n");
+        journal = in.nextLine();
+
+        out.print("Enter the first page number of the article\n");
+        while(!setStartingPage(Integer.parseInt(in.nextLine()))) {
+            System.out.println("Enter a valid starting page.");
+        }
+
+        out.print("Enter the last page number of the article\n");
+        while(!setEndingPage(Integer.parseInt(in.nextLine()))) {
+            System.out.println("Enter a valid starting page.");
+        }
+
+    }
+
+    /**
+     * Prints out a prompt that asks certain characteristics when updating an article
+     * @param out prints out the output for an updated prompt
+     * @param in Scanner object that allows the user to input
+     */
+~~~~ Java highlight
+    public void promptForUpdate(PrintStream out, Scanner in) {
+~~~~
+!!! minus: -1 Prefer using the @Override annotation
+    It is preferred to include the `@Override` annotation
+    because it makes your code easier to understand (since you are more
+    explicit about your intentions).  It also makes it possible for the
+    compiler to catch simple (but hard to catch) errors like a typo in the
+    name.  This sort of error can be hard to spot without the
+    `@Override` annotation because your code will continue to
+    run, but it will keep calling the inherited method instead of the one
+    you really want to call.
+
+~~~~ Java highlight
+        out.print("Enter the ID of the reference you want to update\n");
+        in.nextLine();
+        out.print("Enter the updated author of the reference\n");
+        author = in.nextLine();
+        out.print("Enter the updated title of the reference\n");
+        title = in.nextLine();
+        out.print("Enter the updated copyright year for the reference.\n");
+        publicationYear = Integer.parseInt(in.nextLine());
+~~~~
+!!! minus: -1 Prefer code reuse
+    Rather than duplicating the same code in the `Reference`, `Book`, and
+    `Article` classes, you could have the `Reference.promptForUpdate()`
+    method handle all updates related to the author, title, and copyright
+    year and then add the following call to the `Book` and `Article`
+    implementations of the `promptForUpdate()` method:
+    `super.promptForUpdate(in);`.
+
+~~~~ Java
+        out.print("Enter the updated title of the journal\n");
+        journal = in.nextLine();
+
+        out.print("Enter the updated first page number of the article\n");
+        while(!setStartingPage(Integer.parseInt(in.nextLine()))) {
+            System.out.println("Enter a valid starting page.");
+        }
+
+        out.print("Enter the updated last page number of the article\n");
+        while(!setEndingPage(Integer.parseInt(in.nextLine()))) {
+            System.out.println("Enter a valid starting page.");
+        }
+    }
+
+    public int getEndingPage() {
+        return endingPage;
+    }
+
+    public int getStartingPage() {
+        return startingPage;
+    }
+
+    public String getJournal() {
+        return journal;
+    }
+
+    @Override
+    public String toString() {
+        return "@ARTICLE { " + super.getMyUniqueID() + ",\n" +
+                "author = \"" + getAuthor() + "\",\n" +
+                "title = \"" + getTitle() + "\",\n" +
+                "journal = \"" + getJournal() + "\",\n" +
+                "pages = \"" + getStartingPage() + "-" + getEndingPage() + "\",\n" +
+                "year = \"" + getPublicationYear() + "\"\n" +
+                "}\n";
+    }
+
+    private boolean setStartingPage(int startingPage) {
+        this.startingPage = startingPage;
+        return true;
+    }
+
+    private boolean setEndingPage(int endingPage) {
+~~~~ Java highlight
+        this.endingPage = endingPage;
+~~~~
+!!! minus: -1 If less than the starting page then do not change
+    The [javadoc for this method](http://csse.msoe.us/cs1021/lab3/Article.html#setEndingPage-int-)
+    indicates that the constructor <blockquote>If the desired ending page is less than the starting page, no change is made.</blockquote>
+
+~~~~ Java
+        return true;
+    }
+}
+
+
+~~~~
+
+# Book.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 3
+ * Name: Hudson Arney
+ * Created: 12/14/2021
+ * Updated:
+ */
+
+package arneyh;
+
+import java.io.PrintStream;
+import java.util.Scanner;
+
+/**
+ * Book class that is a reference. A book class has its own separate functions from other
+ * reference types
+ */
+public class Book extends Reference {
+    private String publisher;
+
+    /**
+     * Prints out a prompt for when a new book is created.
+     * @param out prints out the output for a new prompt
+     * @param in Scanner object that allows the user to input
+     */
+    public void promptToInitialize(PrintStream out, Scanner in) {
+        out.print("Enter the author of the reference\n");
+        author = in.nextLine();
+        out.print("Enter the title of the reference\n");
+        title = in.nextLine();
+        out.print("Enter the copyright year of the reference\n");
+        publicationYear = Integer.parseInt(in.nextLine());
+        out.print("Enter the publisher of the book\n");
+        publisher = in.nextLine();
+
+    }
+
+    /**
+     * Prints out a prompt that asks certain characteristics when updating an article
+     * @param out prints out the output for an updated prompt
+     * @param in Scanner object that allows the user to input
+     */
+    public void promptForUpdate(PrintStream out, Scanner in) {
+        out.print("Enter the updated author of the reference\n");
+        author = in.nextLine();
+        out.print("Enter the updated title of the reference\n");
+        title = in.nextLine();
+        out.print("Enter the updated copyright year for the reference.\n");
+        publicationYear = Integer.parseInt(in.nextLine());
+        out.print("Enter the updated publisher for the book\n");
+        publisher = in.nextLine();
+    }
+
+    public String getPublisher() {
+        return publisher;
+    }
+
+    @Override
+    public String toString() {
+        return "@BOOK { " + super.getMyUniqueID() +",\n" +
+                "author = \"" + getAuthor() + "\",\n" +
+                "title = \"" + getTitle() + "\",\n" +
+                "publisher = \"" + getPublisher() + "\",\n" +
+                "year = \"" + getPublicationYear() + "\"\n}\n";
+    }
+}
+
+
+~~~~
+
+# Lab3.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 3
+ * Name: Hudson Arney
+ * Created: 12/14/2021
+ * Updated:
+ */
+
+package arneyh;
+
+import java.io.PrintStream;
+import java.util.Scanner;
+
+/**
+ * Driver class for all reference types
+ */
+public class Lab3 {
+    public static void main(String[] args) {
+        PrintStream out = new PrintStream(System.out);
+        boolean continuation = true;
+        ReferenceHolder list = new ReferenceHolder();
+
+        do {
+            Scanner in = new Scanner(System.in);
+            System.out.println("""
+                    Enter 0 to exit the program.
+                    Enter 1 to enter a new book into the reference set.
+                    Enter 2 to enter a new article into the reference set.
+                    Enter 3 to update a reference.
+                    Enter 4 to printout the entries in Bibtex format.
+                    Enter 5 to remove a reference.""");
+            String choice = in.nextLine();
+
+            switch (choice) {
+                case "0" -> {
+                    System.out.println("Goodbye");
+                    continuation = false;
+                }
+                case "1" -> {
+                    Book book = new Book();
+                    book.promptToInitialize(out, in);
+                    list.addReference(book);
+                }
+                case "2" -> {
+                    Article article = new Article();
+                    article.promptToInitialize(out, in);
+                    list.addReference(article);
+                }
+                case "3" -> {
+                    System.out.println("Enter the ID of the reference you want to update");
+                    list.updateReference(in.nextLine(), out, in);
+                }
+                case "4" -> System.out.println(list);
+                case "5" -> {
+                    System.out.println("Enter the ID of the reference you want to remove.");
+                    list.removeReference(in.nextLine());
+                }
+                default -> System.out.println("The option entered does not follow the prompt.\n" +
+                        "Please try again.");
+            }
+        } while(continuation);
+    }
+}
+
+
+~~~~
+
+# Reference.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 3
+ * Name: Hudson Arney
+ * Created: 12/14/2021
+ * Updated:
+ */
+
+package arneyh;
+
+import java.io.PrintStream;
+import java.util.Scanner;
+
+/**
+ * Reference class that holds values that all reference types need to have
+ */
+public abstract class Reference {
+    private static int instanceCount = 0;
+    protected String author;
+    protected final String myUniqueID;
+    protected int publicationYear;
+    protected String title;
+
+    /**
+     * Reference constructor that give the uniqueID of a reference the
+     * string "REF" + a number
+     * This number will be added based on how many references there are
+     */
+    public Reference() {
+        myUniqueID = "REF" + instanceCount;
+        instanceCount++;
+    }
+
+    /**
+     * promptToInitialize method is abstract
+     * @param out the output of all the information
+     * @param in Scanner that will add text to the output
+     */
+    public abstract void promptToInitialize(PrintStream out, Scanner in);
+
+    /**
+     * prompt for update method which is the default for all classes
+     * @param out the output of all the information
+     * @param in Scanner that will add text to the output
+     */
+    public void promptForUpdate(PrintStream out, Scanner in) {
+        out.print("Enter the title of the work.");
+        title = in.nextLine();
+        out.print("Enter the name of the author.");
+        author = in.nextLine();
+        out.print("Enter the year of publication.");
+        publicationYear = Integer.parseInt(in.nextLine());
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getMyUniqueID() {
+        return myUniqueID;
+    }
+
+    public int getPublicationYear() {
+        return publicationYear;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+}
+
+~~~~
+
+# ReferenceHolder.java
+
+~~~~ Java
+/*
+ * Course: CS 1021 021
+ * Winter 2021-2022
+ * Lab 3
+ * Name: Hudson Arney
+ * Created: 12/14/2021
+ * Updated:
+ */
+
+package arneyh;
+
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Reference Holder Class uses an Arraylist of references and holds values
+ * in certain sections of the arraylist to later be printed in Bibtex format
+ */
+public class ReferenceHolder {
+    private final List&lt&#xFEFF;Reference> references;
+
+    /**
+     * Reference Holder Constructor instantiates the Arraylist
+     */
+    public ReferenceHolder() {
+        references = new ArrayList&lt&#xFEFF;>();
+    }
+
+    /**
+     * Adds a book to the references arraylist
+     * @param book book type that will be added to the arraylist
+     */
+    public void addReference(Book book) {
+        references.add(book);
+    }
+
+    /**
+     * Adds an article to the references arraylist
+     * @param article article type that will be added to the arraylist
+     */
+    public void addReference(Article article) {
+        references.add(article);
+    }
+
+    /**
+     * To String method that will print out all references in bibtex format
+     * @return All the references in the arraylist
+     */
+    public String toString() {
+~~~~ Java highlight
+        StringBuilder bibtex = new StringBuilder();
+        for (Reference reference : references) {
+            bibtex.append(reference);
+        }
+        return bibtex.toString();
+~~~~
+!!! FEEDBACK: Bonus material... feel free to ignore
+    We won't cover this until later in the quarter, but starting in version
+    8 of Java, there is an alternative to the for-each loop that you may
+    find interesting.  You could replace the loop with a call to the
+    `forEach()` method that is part of the `List` interface.
+    ```
+    StringBuilder builder = new StringBuilder();
+    references.forEach(ref -> builder.append(ref));
+    return builder.toString();
+    ```
+
+    This makes use of the `forEach()` method and something
+    called a lambda expression.  The lambda expression is a self-contained
+    method that is passed to the `forEach()` method.  The
+    lambda expression is applied to each element (`ref`) in
+    the `ArrayList` of `references`.
+
+    In this particular example, the `forEach()` call says
+    go through every element in `references` and append the string
+    representation of the reference to the string builder object.
+
+~~~~ Java
+    }
+
+    /**
+     * Remove reference method that will remove a given reference from the references arraylist
+     * @param uniqueID the specific number
+     * @return a boolean if the given item can be removed
+     */
+    public boolean removeReference(String uniqueID) {
+        boolean removed = false;
+~~~~ Java highlight
+        for(int i = references.size() - 1; i >= 0; i--) {
+~~~~
+!!! MINUS: Why loop backwards and why keep looping?
+    Looping from back to front seems odd. Is there a reason for going backwards
+    through the list? Also, once you have removed the reference, there is
+    no point in continuing to look for it. You should modify your loop conditional
+    to: `!removed &amp;&amp; i>= 0`.
+
+~~~~ Java
+            if (references.get(i).getMyUniqueID().equals(uniqueID)) {
+                references.remove(i);
+                removed = true;
+            }
+        }
+        return removed;
+    }
+
+    /**
+     * updateReference method that although for a method to be changed
+     * @param uniqueID given for all references that will be different for all
+     * @param out allows you to print out
+     * @param in the scanner that allows the prompt to be typed
+     * @return a boolean if the reference can be updated
+     */
+    public boolean updateReference(String uniqueID, PrintStream out, Scanner in) {
+        boolean update = false;
+        for (Reference reference : references) {
+            if (reference.getMyUniqueID().equals(uniqueID)) {
+                reference.promptForUpdate(out, in);
+                update = true;
+            }
+        }
+        return update;
+    }
+
+}
+
+
+~~~~
+
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>

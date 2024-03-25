@@ -1,0 +1,989 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 9: Image Manipulator Take 2**
+    Username: arneyh
+    Date: 02-14-2022
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   45   |    45    | Instructor testing                               |
+    |   10   |    10    | Transformable interface/functional programming   |
+    |   20   |    20    | Technical quality (see point deductions in code) |
+    |   10   |    10    | Coding standard compliance and program clarity   |
+    |    5   |     5    | JavaDoc files generated and included             |
+    |    5   |     5    | Executable `.jar` generated and included         |
+    |    5   |     5    | Following submission instructions                |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+!!! MINUS: -10 Instructor tests
+    * &#x02714; Shows/Hides filter window (3)
+    * &#x0274C; Label on Show/Hide button updates (1)
+    * &#x0274C; Button switches to "Show" when filter window cancelled (1)
+    * &#x02714; Red-gray transforms correctly (1)
+    * &#x02714; Blur/Sharpen buttons populate correctly (1)
+    * &#x0274C; Error handled if filter value missing (1)
+    * &#x0274C; Error handled if filter values sum to zero (1)
+    * &#x0274C; Filter window closes when main window closed (1)
+    * &#x02714; Load .bmsoe file correctly (5)
+    * &#x0274C; Save .bmsoe file correctly (5)
+    * &#x02714; Load .msoe file correctly (3)
+    * &#x02714; Save .msoe file correctly (3)
+    * &#x02714; Load .png file correctly (2)
+    * &#x02714; Save .png file correctly (2)
+    * &#x02714; Handled all encountered exceptions during testing (10)
+    * &#x02714; All but Load buttons disabled when no image loaded (no points lost for this, but it's an example of an improvement you could make to your UI for lab 10)
+
+# ImageIO.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+import edu.msoe.cs1021.ImageUtil;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+/**
+ * ImageIO Class that will read and write certain images based on their file type
+ */
+public class ImageIO {
+
+    private static String extension;
+
+    /**
+     * Read method that will read an image file ending in .png or .jpg
+     *
+     * @param path path file to read
+     * @return An image to be posted to the displayImage (View)
+     * @throws IllegalArgumentException if file has illegal arguments
+     * @throws IOException if file has an IOException it can get caught in the Lab8Controller
+     */
+    public static Image read(Path path) throws IllegalArgumentException, IOException {
+        Image newImage = null;
+
+        File image = new File(String.valueOf(path));
+        int i = image.getName().lastIndexOf('.');
+        extension = image.getName().substring(i + 1);
+
+        switch (extension) {
+            case "png", "jpg" -> newImage = ImageUtil.readImage(path);
+            case "msoe" -> newImage = readMSOE(path);
+            case "bmsoe" -> newImage = readBMSOE(path);
+        }
+        return newImage;
+    }
+
+    /**
+     * Write method that will write for an image file ending in .png or .jpg
+     *
+     * @param path  path file to write
+     * @param image new Image to write
+     * @throws IOException if file has an IOException it can get caught in the Lab8Controller
+     */
+    public static void write(Image image, Path path) throws IllegalArgumentException, IOException {
+
+        switch (extension) {
+            case "jpg", "pdf" -> ImageUtil.writeImage(path, image);
+            case "msoe" -> writeMSOE(image, path);
+            case "bmsoe" -> writeBMSOE(image, path);
+        }
+
+    }
+
+    /**
+     * Read method that will read an image file ending in .msoe
+     * @param path path .msoe file to read
+     * @return Image
+     * @throws IOException if file has an IOException it can get caught in the Lab8Controller
+     */
+    private static Image readMSOE(Path path) throws IOException {
+        Scanner scan = new Scanner(path);
+        scan.nextLine();
+        int width = Integer.parseInt(scan.next());
+        int height = Integer.parseInt(scan.next());
+        WritableImage writeImage = new WritableImage(width, height);
+        for (int i = 0; i &lt&#xFEFF; height; i++) {
+            for (int j = 0; j &lt&#xFEFF; width; j++) {
+                Color c = stringToColor(scan.next());
+                writeImage.getPixelWriter().setColor(j, i, c);
+            }
+        }
+        return writeImage;
+
+    }
+
+    /**
+     * Write method that will write for an image file ending in .msoe
+     * @param path path .msoe write file to run
+     * @throws IOException file has an IOException it can get caught in the Lab8Controller
+     */
+    private static void writeMSOE(Image image, Path path) throws IOException {
+        File file = new File(String.valueOf(path));
+        PrintWriter out = new PrintWriter(file);
+        out.println("MSOE");
+        out.println((int) image.getWidth() + " " + (int) image.getHeight());
+
+        for (int i = 0; i &lt&#xFEFF; image.getWidth(); i++) {
+            for (int j = 0; j &lt&#xFEFF; image.getHeight(); j++) {
+                String hex = "" +
+                        colorToString(image.getPixelReader().getColor(i, j));
+                out.print("" + hex + " ");
+            }
+            out.println();
+        }
+        out.close();
+    }
+
+    /**
+     * Read method that will read an image file ending in .bmsoe
+     * @param path path .bmsoe file to read
+     * @return Image
+     * @throws IOException if file has an IOException it can get caught in the Lab8Controller
+     */
+    private static Image readBMSOE(Path path) throws IOException {
+        final int bmsoeLength = 5;
+        DataInputStream in = new DataInputStream(new BufferedInputStream(
+                (Files.newInputStream(path))));
+        for (int i = 0; i &lt&#xFEFF; bmsoeLength; i++) {
+            in.readByte();
+        }
+        int width = in.readInt();
+        int height = in.readInt();
+        WritableImage writeImage = new WritableImage(width, height);
+        for (int i = 0; i &lt&#xFEFF; height; i++) {
+            for (int j = 0; j &lt&#xFEFF; width; j++) {
+                writeImage.getPixelWriter().setColor(j, i, intToColor(in.readInt()));
+            }
+        }
+        return writeImage;
+    }
+
+    /**
+     * Write method that will write for an image file ending in .bmsoe
+     * @param path path .bmsoe write file to run
+     * @throws IOException file has an IOException it can get caught in the Lab8Controller
+     */
+    private static void writeBMSOE(Image image, Path path) throws IOException {
+        DataOutputStream out = new DataOutputStream(
+                new BufferedOutputStream(Files.newOutputStream(path)));
+        out.writeBytes("BSMOE");
+        out.writeInt((int) image.getWidth());
+        out.writeInt((int) image.getHeight());
+        for (int j = 0; j &lt&#xFEFF; image.getHeight(); j++) {
+            for (int i = 0; i &lt&#xFEFF; image.getWidth(); i++) {
+                int colorToInt = colorToInt(image.getPixelReader().getColor(i, j));
+                out.writeInt(colorToInt);
+            }
+        }
+    }
+
+
+    private static Color stringToColor(String hexTriple) throws InputMismatchException {
+        final int index1 = 1;
+        final int index3 = 3;
+        final int index5 = 5;
+        final int index7 = 7;
+        final int base16 = 16;
+        final int correctLength = 7;
+
+        if (hexTriple.indexOf('#') != 0 || hexTriple.length() != correctLength) {
+            throw new InputMismatchException("Invalid Color Format Inputted.");
+        }
+
+        for (int i = 1; i &lt&#xFEFF; hexTriple.length(); i++) {
+            if (Character.digit(hexTriple.charAt(i), base16) == -1) {
+                throw new InputMismatchException("Invalid Hex Number Entered.");
+            }
+        }
+
+        int r = Integer.valueOf(hexTriple.substring(index1, index3), base16);
+        int g = Integer.valueOf(hexTriple.substring(index3, index5), base16);
+        int b = Integer.valueOf(hexTriple.substring(index5, index7), base16);
+
+        return Color.rgb(r, g, b);
+    }
+
+    /**
+     * Goes from a color to a string that describes that color
+     *
+     * @param color the color from the pixel
+     * @return a string of a color from a pixel
+     */
+    private static String colorToString(Color color) {
+        final int eightIndex = 8;
+        return "#" + color.toString().substring(2, eightIndex).toUpperCase();
+    }
+
+    private static Color intToColor(int color) {
+        double red = ((color >> 16) & 0x000000FF) / 255.0;
+        double green = ((color >> 8) & 0x000000FF) / 255.0;
+        double blue = (color & 0x000000FF) / 255.0;
+        double alpha = ((color >> 24) & 0x000000FF) / 255.0;
+        return new Color(red, green, blue, alpha);
+    }
+
+    private static int colorToInt(Color color) {
+        int red = ((int) (color.getRed() * 255)) & 0x000000FF;
+        int green = ((int) (color.getGreen() * 255)) & 0x000000FF;
+        int blue = ((int) (color.getBlue() * 255)) & 0x000000FF;
+        int alpha = ((int) (color.getOpacity() * 255)) & 0x000000FF;
+        return (alpha &lt&#xFEFF;&lt&#xFEFF; 24) + (red &lt&#xFEFF;&lt&#xFEFF; 16) + (green &lt&#xFEFF;&lt&#xFEFF; 8) + blue;
+    }
+}
+
+
+~~~~
+
+# JarRunner.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+/**
+ * JarRunner class that is used by the .jar file
+ */
+public class JarRunner {
+    public static void main(String[] args) {
+        Lab8.main(args);
+    }
+}
+
+~~~~
+
+# Lab8.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+
+import java.util.Objects;
+
+/**
+ * Lab 8 Contains the driver as well as the method that displays the output
+ */
+public class Lab8 extends Application {
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        FXMLLoader mainLoader = new FXMLLoader();
+        Parent root = mainLoader.load(Objects.requireNonNull(getClass().
+                getResource("lab8.fxml")).openStream());
+        primaryStage.setTitle("Picture Manipulator");
+        primaryStage.setScene(new Scene(root));
+        primaryStage.show();
+        Lab8Controller mainController = mainLoader.getController();
+        mainController.setMainGrid((Pane)root);
+
+        FXMLLoader secondaryLoader = new FXMLLoader();
+        Stage secondaryStage = new Stage();
+        Parent secondaryRoot =
+                secondaryLoader.load(Objects.requireNonNull(Objects.requireNonNull(getClass().
+                        getResource("FilterKernel.fxml")).openStream()));
+
+        SecondaryController secondaryController = secondaryLoader.getController();
+        secondaryStage.setTitle("Filter Kernel");
+        secondaryStage.setScene(new Scene(secondaryRoot));
+        secondaryStage.hide();
+
+        mainController.setOtherStage(secondaryStage);
+        mainController.setOtherController(secondaryController);
+
+        secondaryController.setMainStage(primaryStage);
+        secondaryController.setMainController(mainController);
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+}
+~~~~
+
+# Lab8Controller.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
+import java.awt.event.MouseAdapter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.*;
+
+import static arneyh.ImageIO.read;
+
+/**
+ * Lab 8 Controller Class
+ * Contains all FXML aspects of code
+ */
+public class Lab8Controller implements Initializable {
+
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button reloadButton;
+    @FXML
+    private Button grayscaleButton;
+    @FXML
+    private Button negativeButton;
+    @FXML
+    private Button redButton;
+    @FXML
+    private Button redGrayButton;
+    @FXML
+    private Button showFilterButton;
+
+    @FXML
+    private ImageView displayImage;
+    @FXML
+    private Pane mainGrid;
+    @FXML
+    private Label coordinate;
+    @FXML
+    private Label color;
+
+    private Image image;
+    private File imageFile;
+    private Stage otherStage;
+    private SecondaryController otherController;
+
+
+    /**
+     * Setter method that sets up new stage by updating the otherStage
+     * @param otherStage modifies the otherStage
+     */
+    public void setOtherStage(Stage otherStage) {
+        this.otherStage = otherStage;
+    }
+
+    /**
+     * Setter method that sets up the secondary controller by updating the other controller
+     * @param otherController modifies the otherController
+     */
+    public void setOtherController(SecondaryController otherController) {
+        this.otherController = otherController;
+    }
+
+    /**
+     * Used to show the secondary filter kernel window
+     * @param event Because the button is pressed to open the next window
+     */
+    public void showOther(ActionEvent event) {
+        if (otherStage.isShowing()) {
+            otherStage.hide();
+        } else {
+            Stage myStage = (Stage) mainGrid.getScene().getWindow();
+            otherStage.setX(myStage.getX());
+            otherStage.setY(myStage.getY() + myStage.getHeight());
+            otherStage.setWidth(myStage.getWidth());
+            otherStage.show();
+        }
+    }
+
+    /**
+     * Setter method that sets up the Pane by updating the mainGrid
+     * @param mainGrid modifies the mainGrid
+     */
+    public void setMainGrid(Pane mainGrid) {
+        this.mainGrid = mainGrid;
+    }
+
+    /**
+     * Load method will load the images file that contains the images and open them when clicked
+     * @param event uses the open button
+     */
+    @FXML
+    public void load(ActionEvent event) {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Image File");
+            fileChooser.setInitialDirectory(new File("images"));
+            File file = fileChooser.showOpenDialog(new Stage());
+            if (file != null) {
+                Path path = file.toPath();
+                displayImage.setImage(read(path));
+                image = displayImage.getImage();
+                enableButtons(event);
+            }
+        } catch (NoSuchElementException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("No Such Element Exception");
+            alert.showAndWait();
+        } catch (IllegalArgumentException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Illegal Argument Exception");
+            alert.showAndWait();
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("File Not Found");
+            alert.showAndWait();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("IO Exception");
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Save Method will save the new image
+     *
+     * @param event uses the save button
+     */
+    @FXML
+    public void save(ActionEvent event) {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Where to Save File");
+            fileChooser.setInitialDirectory(new File("images"));
+            File newFile = fileChooser.showSaveDialog(null);
+            ImageIO.write(displayImage.getImage(), newFile.toPath());
+        } catch (NoSuchElementException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("No Such Element Exception");
+            alert.showAndWait();
+        } catch (IllegalArgumentException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Illegal Argument Exception");
+            alert.showAndWait();
+        } catch (FileNotFoundException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("File Not Found");
+            alert.showAndWait();
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("IO Exception");
+            alert.showAndWait();
+        }
+    }
+
+    /**
+     * Reload method will revert an images changes back to the original image
+     *
+     * @param event Uses the reload button
+     */
+    @FXML
+    public void reload(ActionEvent event) {
+        displayImage.setImage(image);
+    }
+
+    /**
+     * Grayscale method converts the given images color into an all gray image, pixel by pixel
+     *
+     * @param event uses grayscale button
+     */
+    @FXML
+    public void grayscale(ActionEvent event) {
+        Image im;
+        final double redToGray = 0.2126;
+        final double greenToGray = 0.7152;
+        final double blueToGray = 0.0722;
+        im = transformImage(displayImage.getImage(), (int y, Color c) ->
+                Color.gray(c.getRed() * redToGray + c.getGreen() * greenToGray +
+                        c.getBlue() * blueToGray));
+        displayImage.setImage(im);
+    }
+
+    /**
+     * Negative Method converts the given images color to the opposite color, pixel by pixel
+     *
+     * @param event uses negative button
+     */
+    @FXML
+    public void negative(ActionEvent event) {
+        Image im = transformImage(displayImage.getImage(), (int y, Color c) ->
+                Color.color(Math.abs(1.0 - c.getRed()), Math.abs(1.0 - c.getGreen()),
+                        Math.abs(1.0 - c.getBlue())));
+        displayImage.setImage(im);
+    }
+
+    /**
+     * red method that takes all color out of image except for the red
+     *
+     * @param event when the red button is pressed
+     */
+    @FXML
+    public void red(ActionEvent event) {
+        Image im = transformImage(displayImage.getImage(), (int y, Color c) ->
+                Color.color(c.getRed(), 0, 0));
+        displayImage.setImage(im);
+    }
+
+    /**
+     * redGray method that converts one row to grayscale and the next row to red continuously
+     *
+     * @param event used when the red gray button is pressed
+     */
+    @FXML
+    public void redGray(ActionEvent event) {
+        Image im;
+        final double redToGray = 0.2126;
+        final double greenToGray = 0.7152;
+        final double blueToGray = 0.0722;
+        Transformable trans = (int y, Color c) -> {
+            if (y % 2 == 0) {
+                return Color.color(c.getRed(), 0, 0);
+            } else {
+                return Color.gray(c.getRed() * redToGray + c.getGreen() * greenToGray +
+                        c.getBlue() * blueToGray);
+            }
+        };
+
+        im = transformImage(displayImage.getImage(), trans);
+        displayImage.setImage(im);
+
+    }
+
+    private static Image transformImage(Image image, Transformable transform) {
+        WritableImage writeImage = null;
+        try {
+            int width = (int) image.getWidth();
+            int height = (int) image.getHeight();
+            writeImage = new WritableImage(width, height);
+            for (int i = 0; i &lt&#xFEFF; width; i++) {
+                for (int j = 0; j &lt&#xFEFF; height; j++) {
+                    Color c = image.getPixelReader().getColor(i, j);
+                    writeImage.getPixelWriter().setColor(i, j, transform.apply(j, c));
+                }
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Number Format Exception");
+        }
+        return writeImage;
+    }
+
+    /**
+     * getImage method used by the secondary controller
+     * @return an image that the display currently holds
+     */
+    public Image getImage() {
+        return displayImage.getImage();
+    }
+
+    /**
+     * Setter method that sets up the image by updating the image in the secondary controller
+     *
+     * @param image modifies the image
+     */
+    public void setImage(Image image) {
+        displayImage.setImage(image);
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+
+    }
+
+    /**
+     * Disables the buttons that affect a picture until a picture has been selected
+     * @param event used once the open button is pressed
+     */
+    private void enableButtons(ActionEvent event) {
+        List&lt&#xFEFF;Button> buttonList = new ArrayList&lt&#xFEFF;>(Arrays.asList(saveButton, reloadButton,
+                grayscaleButton, negativeButton, redButton, redGrayButton, showFilterButton));
+        buttonList.forEach(b -> b.setDisable(false));
+    }
+
+    /**
+     * Coordinates Method that displays the (x,y)
+     * coordinate of your hovering mouse over the picture
+     * @param event MouseEvent that takes into account when a mouse is being dragged over
+     */
+    @FXML
+    private void coordinates(MouseEvent event) {
+        coordinate.setText("(X,Y) Coordinate: (" + (int)event.getX() + ", "
+                + (int)event.getY() +")");
+    }
+
+}
+
+~~~~
+
+# SecondaryController.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+import edu.msoe.cs1021.ImageUtil;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+
+import java.util.ResourceBundle;
+
+import java.net.URL;
+
+/**
+ * Controller class for the Filter Kernel Window
+ * Contains 9 different text fields that change the pictures visibility
+ */
+public class SecondaryController implements Initializable {
+    private Stage mainStage;
+    private Lab8Controller mainController;
+
+    @FXML
+    private TextField topLeft;
+    @FXML
+    private TextField topCenter;
+    @FXML
+    private TextField topRight;
+    @FXML
+    private TextField centerLeft;
+    @FXML
+    private TextField center;
+    @FXML
+    private TextField centerRight;
+    @FXML
+    private TextField bottomLeft;
+    @FXML
+    private TextField bottomCenter;
+    @FXML
+    private TextField bottomRight;
+
+    private double divide = 1;
+
+    /**
+     * Setter method for mainStage
+     * @param mainStage mainStage
+     */
+    public void setMainStage(Stage mainStage) {
+        this.mainStage = mainStage;
+    }
+
+    public void setMainController(Lab8Controller mainController) {
+        this.mainController = mainController;
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) { }
+
+    @FXML
+    private void blur(ActionEvent event) {
+        final int blurDivideByNine = 9;
+        topLeft.setText("0");
+        topCenter.setText("1");
+        topRight.setText("0");
+        centerLeft.setText("1");
+        center.setText("5");
+        centerRight.setText("1");
+        bottomLeft.setText("0");
+        bottomCenter.setText("1");
+        bottomRight.setText("0");
+        divide = blurDivideByNine;
+    }
+
+    @FXML
+    private void sharpen(ActionEvent event) {
+        topLeft.setText("0");
+        topCenter.setText("-1");
+        topRight.setText("0");
+        centerLeft.setText("-1");
+        center.setText("5");
+        centerRight.setText("-1");
+        bottomLeft.setText("0");
+        bottomCenter.setText("-1");
+        bottomRight.setText("0");
+        divide = 1;
+    }
+
+    @FXML
+    private void apply(ActionEvent event) {
+        double[] kernel = { Double.parseDouble(topLeft.getText()) / divide,
+                Double.parseDouble(topCenter.getText()) / divide,
+                Double.parseDouble(topRight.getText()) / divide,
+                Double.parseDouble(centerLeft.getText()) / divide,
+                Double.parseDouble(center.getText()) / divide,
+                Double.parseDouble(centerRight.getText()) / divide,
+                Double.parseDouble(bottomLeft.getText()) / divide,
+                Double.parseDouble(bottomCenter.getText()) / divide,
+                Double.parseDouble(bottomRight.getText()) / divide};
+        Image image = mainController.getImage();
+        mainController.setImage(ImageUtil.convolve(image, kernel));
+    }
+}
+
+~~~~
+
+# Transformable.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 9 - Final Project Part 2
+ * Name: Hudson Arney
+ * Created: 2/7/2022
+ * Updated: 2/14/2022
+ */
+
+package arneyh;
+
+import javafx.scene.paint.Color;
+
+@FunctionalInterface
+interface Transformable {
+    Color apply(int y, Color color);
+}
+~~~~
+
+# FilterKernel.fxml
+
+~~~~ XML
+&lt&#xFEFF;?xml version="1.0" encoding="UTF-8"?>
+
+&lt&#xFEFF;?import javafx.geometry.Insets?>
+&lt&#xFEFF;?import javafx.scene.control.Button?>
+&lt&#xFEFF;?import javafx.scene.control.TextField?>
+&lt&#xFEFF;?import javafx.scene.layout.HBox?>
+&lt&#xFEFF;?import javafx.scene.layout.VBox?>
+
+
+&lt&#xFEFF;VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="arneyh.SecondaryController">
+   &lt&#xFEFF;children>
+      &lt&#xFEFF;HBox prefHeight="100.0" prefWidth="200.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;TextField fx:id="topLeft" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="topCenter" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="topRight" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;Button mnemonicParsing="false" onAction="#blur" prefHeight="25.0" prefWidth="84.0" text="Blur" />
+         &lt&#xFEFF;/children>
+      &lt&#xFEFF;/HBox>
+      &lt&#xFEFF;HBox prefHeight="100.0" prefWidth="200.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;TextField fx:id="centerLeft" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="center" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="centerRight" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;Button mnemonicParsing="false" onAction="#sharpen" prefHeight="25.0" prefWidth="84.0" text="Sharpen" />
+         &lt&#xFEFF;/children>
+      &lt&#xFEFF;/HBox>
+      &lt&#xFEFF;HBox prefHeight="100.0" prefWidth="200.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;TextField fx:id="bottomLeft" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="bottomCenter" prefHeight="25.0" prefWidth="100.0">
+               &lt&#xFEFF;HBox.margin>
+                  &lt&#xFEFF;Insets right="5.0" />
+               &lt&#xFEFF;/HBox.margin>
+            &lt&#xFEFF;/TextField>
+            &lt&#xFEFF;TextField fx:id="bottomRight" prefHeight="25.0" prefWidth="100.0" />
+         &lt&#xFEFF;/children>
+      &lt&#xFEFF;/HBox>
+      &lt&#xFEFF;Button alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#apply" prefHeight="25.0" prefWidth="205.0" text="Apply">
+         &lt&#xFEFF;VBox.margin>
+            &lt&#xFEFF;Insets bottom="1.0" left="105.0" />
+         &lt&#xFEFF;/VBox.margin>
+      &lt&#xFEFF;/Button>
+   &lt&#xFEFF;/children>
+&lt&#xFEFF;/VBox>
+
+~~~~
+
+# lab8.fxml
+
+~~~~ XML
+&lt&#xFEFF;?xml version="1.0" encoding="UTF-8"?>
+
+&lt&#xFEFF;?import javafx.geometry.Insets?>
+&lt&#xFEFF;?import javafx.scene.control.Button?>
+&lt&#xFEFF;?import javafx.scene.control.Label?>
+&lt&#xFEFF;?import javafx.scene.image.ImageView?>
+&lt&#xFEFF;?import javafx.scene.layout.HBox?>
+&lt&#xFEFF;?import javafx.scene.layout.VBox?>
+
+&lt&#xFEFF;HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="arneyh.Lab8Controller">
+   &lt&#xFEFF;children>
+      &lt&#xFEFF;VBox prefHeight="500.0" prefWidth="157.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;ImageView fx:id="displayImage" fitHeight="350.0" fitWidth="300.0" onMouseMoved="#coordinates" onTouchStationary="#coordinates" pickOnBounds="true" preserveRatio="true" />
+            &lt&#xFEFF;Label fx:id="coordinate" prefHeight="65.0" prefWidth="300.0" />
+            &lt&#xFEFF;Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="300.0" text="About: This program was created by Hudson Arney.">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets left="4.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Label>
+            &lt&#xFEFF;Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="300.0" text="It includes options to manipulate images of multiple">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets left="4.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Label>
+            &lt&#xFEFF;Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="293.0" text="types. You can also identify the coordinates of a certain">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets left="4.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Label>
+            &lt&#xFEFF;Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="246.0" text="pixel by hovering your mouse over the image.">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets left="4.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Label>
+         &lt&#xFEFF;/children>
+      &lt&#xFEFF;/VBox>
+      &lt&#xFEFF;VBox prefHeight="500.0" prefWidth="150.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;Button mnemonicParsing="false" onAction="#load" prefHeight="25.0" prefWidth="100.0" text="Open">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="saveButton" disable="true" mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="100.0" text="Save">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="reloadButton" disable="true" mnemonicParsing="false" onAction="#reload" prefHeight="25.0" prefWidth="100.0" text="Reload">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="grayscaleButton" disable="true" mnemonicParsing="false" onAction="#grayscale" prefHeight="25.0" prefWidth="100.0" text="Grayscale">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="negativeButton" disable="true" mnemonicParsing="false" onAction="#negative" prefHeight="25.0" prefWidth="100.0" text="Negative">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>&lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="redButton" disable="true" mnemonicParsing="false" onAction="#red" prefHeight="25.0" prefWidth="100.0" text="Red">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="redGrayButton" disable="true" mnemonicParsing="false" onAction="#redGray" prefHeight="25.0" prefWidth="100.0" text="Red-Gray">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="showFilterButton" disable="true" mnemonicParsing="false" onAction="#showOther" prefHeight="25.0" prefWidth="100.0" text="Show Filter">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+         &lt&#xFEFF;/children>
+         &lt&#xFEFF;padding>
+            &lt&#xFEFF;Insets bottom="20.0" />
+         &lt&#xFEFF;/padding>
+      &lt&#xFEFF;/VBox>
+   &lt&#xFEFF;/children>
+&lt&#xFEFF;/HBox>
+
+~~~~
+
+!!! MINUS: -10 Late penalty
+    Your submission was 1 day late.
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>

@@ -1,0 +1,583 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 8: Image Manipulator**
+    Username: arneyh
+    Date: 02-09-2021
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   60   |    60    | Technical quality (see point deductions in code) |
+    |   20   |    20    | Instructor testing                               |
+    |   10   |    10    | Coding standard compliance and program clarity   |
+    |    2   |     2    | JavaDoc files generated and included             |
+    |    2   |     2    | Executable `.jar` generated and included         |
+    |    6   |     6    | Following submission instructions                |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+# ImageIO.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 8 - Final Project Part 1
+ * Name: Hudson Arney
+ * Created: 2/1/2022
+ * Updated: 2/7/2022
+ */
+
+package arneyh;
+
+import edu.msoe.cs1021.ImageUtil;
+import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+
+import java.io.*;
+import java.nio.file.Path;
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+/**
+ * ImageIO Class that will read and write certain images based on their file type
+ */
+public class ImageIO {
+
+    /**
+     * Read method that will read an image file ending in .png or .jpg
+     * @param path path file to read
+     * @throws IllegalArgumentException if file has illegal arguments
+     */
+    public static Image read(Path path) throws IllegalArgumentException {
+        Image image = null;
+        try {
+            image = ImageUtil.readImage(path);
+~~~~ Java highlight
+        } catch(FileNotFoundException e) {
+            System.out.println("File Not Found");
+        } catch(InputMismatchException e) {
+            System.out.println("Input Mismatch");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Arguments");
+        } catch (IOException e) {
+            System.out.println("IO Exception");
+        }
+~~~~
+!!! minus: -1 Must throw `IllegalArgumentException`
+    The assignment stated:
+    <blockquote>Both `read()` and `write()` must throw an
+    `IllegalArgumentException` if the path passed in has a file
+     extension that specifies an unsupported image format.</blockquote>
+
+!!! minus: -1 Library code should not handle exception
+    The `ImageIO` class provides functionality for loading and saving images.
+    This class could be used in lots of different programs for lots of different
+    purposes.  For example, you could write a program that resized every
+    image in a given directory.  The program would not necessarily need a
+    graphical user interface.  In fact, it could be scheduled to run every
+    night to make thumbnail images of all of the images in the temporary
+    downloads folder for your web browser and then copy them elsewhere so that
+    you had a quick summary of your browsing history.
+
+    Such a program could use your `ImageIO`.  For a program like this, you'd
+    likely want to handle exceptions differently than you do for the lab
+    assignment.  One of the powerful features of exceptions is that you can
+    defer when to handle the exception.
+
+~~~~ Java
+
+        return image;
+    }
+
+    /**
+     * Write method that will write for an image file ending in .png or .jpg
+     * @param path path file to write
+     * @param image new Image to write
+     * @throws IllegalArgumentException if file has illegal arguments
+     */
+    public static void write(Image image, Path path) throws IllegalArgumentException {
+        try {
+            ImageUtil.writeImage(path, image);
+        } catch(FileNotFoundException e) {
+            System.out.println("File Not Found");
+        } catch(InputMismatchException e) {
+            System.out.println("Input Mismatch");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Arguments");
+        } catch (IOException e) {
+            System.out.println("IO Exception");
+        }
+    }
+
+    /**
+     * Read method that will read an image file ending in .msoe
+     * @param path path .msoe file to read
+     * @return Image
+     * @throws IllegalArgumentException if file has illegal arguments
+     */
+~~~~ Java highlight
+    public static Image readMSOE(Path path) throws IllegalArgumentException {
+~~~~
+!!! minus: -1 `readMSOE()` and `writeMSOE()` must be `private`
+    The assignment stated:
+    <blockquote>If the extension on the file passed to either of these methods is `.msoe` then the appropriate __private class method below__ is called to do the actual work.</blockquote>
+
+~~~~ Java
+
+        WritableImage writeImage = null;
+        try(Scanner scan = new Scanner(path)) {
+            scan.nextLine();
+            int width = Integer.parseInt(scan.next());
+            int height = Integer.parseInt(scan.next());
+            writeImage = new WritableImage(width, height);
+            for (int i = 0; i &lt&#xFEFF; height; i++) {
+                for (int j = 0; j &lt&#xFEFF; width; j++) {
+                    Color c = stringToColor(scan.next());
+                    writeImage.getPixelWriter().setColor(j, i, c);
+                }
+            }
+            return writeImage;
+        } catch(InputMismatchException e) {
+~~~~ Java highlight
+            System.out.println("Input Mismatch");
+        } catch(IllegalArgumentException | IOException e) {
+            System.out.println("Illegal Argument");
+~~~~
+!!! minus: Use Alert dialogs to communicate with user
+    Since this program uses a graphical user interface, you should
+    use dialog boxes to communicate with the user. If someone double-clicks
+    on the `.jar` file to run your program, all of the output to the
+    console is not visible to them. As a result, your program will appear
+    to refuse to do things rather than let the user know that a problem
+    was encountered.
+
+~~~~ Java
+        }
+
+        return writeImage;
+    }
+
+    /**
+     * Write method that will write for an image file ending in .msoe
+     * @param path path .msoe write file to run
+     * @throws IllegalArgumentException if file has illegal arguments
+     */
+    public static void writeMSOE(Image image, Path path) throws IllegalArgumentException {
+        try {
+            File file = new File(String.valueOf(path));
+            PrintWriter out = new PrintWriter(file);
+            out.println("MSOE");
+            out.println((int)image.getWidth() + " " + (int)image.getHeight());
+
+            for (int i = 0; i &lt&#xFEFF; image.getWidth(); i++) {
+                for (int j = 0; j &lt&#xFEFF; image.getHeight(); j++) {
+                    String hex = "" +
+                            colorToString(image.getPixelReader().getColor(i, j));
+                    out.print("" + hex + " ");
+                }
+                out.println();
+            }
+~~~~ Java highlight
+            out.close();
+~~~~
+!!! minus: -1 Must close if exception is thrown too
+    You need to be careful with explicitly calling `.close()`.
+    If an exception occurs you need to make sure the file resources get closed
+    in those cases too.  I would encourage you to use the try-with-resources
+    construct that was introduced in version 1.7 of Java.
+
+    You can see examples of how to use it [here](https://taylorial.com/cs1021/FileIO.htm).
+
+~~~~ Java
+        } catch(InputMismatchException e) {
+            System.out.println("Input Mismatch");
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        } catch (IOException e) {
+            System.out.println("IO Exception");
+        }
+    }
+
+    private static Color stringToColor(String hexTriple) throws InputMismatchException {
+
+        final int index1 = 1;
+        final int index3 = 3;
+        final int index5 = 5;
+        final int index7 = 7;
+        final int base16 = 16;
+        final int correctLength = 7;
+
+        if(hexTriple.indexOf('#') != 0 || hexTriple.length() != correctLength) {
+            throw new InputMismatchException("Invalid Color Format Inputted.");
+        }
+
+        for(int i = 1; i &lt&#xFEFF; hexTriple.length(); i++) {
+            if(Character.digit(hexTriple.charAt(i), base16) == -1) {
+                throw new InputMismatchException("Invalid Hex Number Entered.");
+            }
+        }
+
+        int r = Integer.valueOf(hexTriple.substring(index1, index3), base16);
+        int g = Integer.valueOf(hexTriple.substring(index3, index5), base16);
+        int b = Integer.valueOf(hexTriple.substring(index5, index7), base16);
+
+        return Color.rgb(r, g, b);
+    }
+
+    /**
+     * Goes from a color to a string that describes that color
+     * @param color the color from the pixel
+     * @return a string of a color from a pixel
+     */
+    public static String colorToString(Color color) {
+        final int eightIndex = 8;
+        return "#" + color.toString().substring(2, eightIndex).toUpperCase();
+    }
+}
+
+
+~~~~
+
+# JarRunner.java
+
+~~~~ Java
+package arneyh;
+
+public class JarRunner {
+    public static void main(String[] args) {
+        Lab8.main(args);
+    }
+}
+
+~~~~
+
+# Lab8.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 8 - Final Project Part 1
+ * Name: Hudson Arney
+ * Created: 2/1/2022
+ * Updated: 2/7/2022
+ */
+
+
+package arneyh;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import java.util.Objects;
+
+/**
+ * Lab 8 Contains the driver as well as the method that displays the output
+ */
+public class Lab8 extends Application {
+
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("lab8.fxml")));
+        stage.setTitle("Picture Manipulator");
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+}
+~~~~
+
+# Lab8Controller.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 8 - Final Project Part 1
+ * Name: Hudson Arney
+ * Created: 2/1/2022
+ * Updated: 2/7/2022
+ */
+
+
+package arneyh;
+
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.net.URL;
+import java.util.ResourceBundle;
+
+/**
+ * Lab 8 Controller Class
+ * Contains all FXML aspects of code
+ */
+public class Lab8Controller implements Initializable {
+~~~~ Java highlight
+    @FXML
+    private Button openButton, saveButton, reloadButton, grayscaleButton, negativeButton;
+~~~~
+!!! MINUS: -1 Avoid extra attributes
+    You should avoid declaring attributes unless you really need them.
+    Here you don't actually reference this button in the controller, so
+    you don't need to include it as an attributes.
+
+!!! MINUS: -1 Use separate line for each variable declaration
+    The [Coding Standard](https://csse.msoe.us/cs1021/codingstandard) requires
+    the following:
+    <blockquote>Each variable declaration and initialization is placed on
+     a separate line.</blockquote>
+
+~~~~ Java
+    @FXML
+    private ImageView displayImage;
+    private File imageFile;
+    private String extension;
+
+    /**
+     * Load method will load the images file that contains the images and open them when clicked
+     * @param event uses the open button
+     */
+    @FXML
+~~~~ Java highlight
+    public void open(ActionEvent event) {
+~~~~
+!!! minus: Method names don't match the requirements
+    You were given specific requirements regarding the names of the handler methods
+    and you are not matching those requirements. For example, this method
+    was required to be called `load()`.
+
+~~~~ Java
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Image File");
+            fileChooser.setInitialDirectory(new File("images"));
+            imageFile = fileChooser.showOpenDialog(null);
+
+            int i = imageFile.getName().lastIndexOf('.');
+            extension = imageFile.getName().substring(i + 1);
+
+            if (extension.equals("msoe")) {
+                displayImage.setImage(ImageIO.readMSOE(imageFile.toPath()));
+            } else if(extension.equals("png") || extension.equals("jpg")) {
+                displayImage.setImage(ImageIO.read(imageFile.toPath()));
+            }
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        }
+    }
+
+    /**
+     * Save Method will save the new image
+     * @param event uses the save button
+     */
+    @FXML
+    public void save(ActionEvent event) {
+        try {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Where to Save File");
+            fileChooser.setInitialDirectory(new File("images"));
+            File newFile = fileChooser.showSaveDialog(null);
+
+            if (extension.equals("msoe")) {
+                ImageIO.writeMSOE(displayImage.getImage(), newFile.toPath());
+            } else if(extension.equals("png") || extension.equals("jpg")) {
+                ImageIO.write(displayImage.getImage(), newFile.toPath());
+            }
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        }
+    }
+
+    /**
+     * Reload method will revert an images changes back to the original image
+     * @param event Uses the reload button
+     */
+    @FXML
+    public void reload(ActionEvent event) {
+        try {
+            if (extension.equals("msoe")) {
+                displayImage.setImage(ImageIO.readMSOE(imageFile.toPath()));
+            } else if(extension.equals("png") || extension.equals("jpg")) {
+                displayImage.setImage(ImageIO.read(imageFile.toPath()));
+            } else {
+                displayImage.setImage(ImageIO.read(imageFile.toPath()));
+            }
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        }
+    }
+
+    /**
+     * Grayscale method converts the given images color into an all gray image, pixel by pixel
+     * @param event uses grayscale button
+     */
+    @FXML
+    public void grayscale(ActionEvent event) {
+        try {
+            Image im = displayImage.getImage();
+            final double redToGray = 0.2126;
+            final double greenToGray = 0.7152;
+            final double blueToGray = 0.0722;
+
+            final int height = (int) displayImage.getImage().getHeight();
+            final int width = (int) displayImage.getImage().getWidth();
+            WritableImage grayImage = new WritableImage(width, height);
+
+            for (int i = 0; i &lt&#xFEFF; width; i++) {
+                for (int j = 0; j &lt&#xFEFF; height; j++) {
+                    Color c = im.getPixelReader().getColor(i, j);
+                    double red = (c.getRed() * redToGray);
+                    double green = (c.getGreen() * greenToGray);
+                    double blue = (c.getBlue() * blueToGray);
+                    grayImage.getPixelWriter().setColor(i, j, Color.gray(red + green + blue));
+                }
+            }
+            displayImage.setImage(grayImage);
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        }
+    }
+
+    /**
+     * Negative Method converts the given images color to the opposite color, pixel by pixel
+     * @param event uses negative button
+     */
+    @FXML
+    public void negative(ActionEvent event) {
+        try {
+            Image im = displayImage.getImage();
+            final int height = (int) displayImage.getImage().getHeight();
+            final int width = (int) displayImage.getImage().getWidth();
+            WritableImage negativeImage =
+                    new WritableImage(width, height);
+
+            for (int i = 0; i &lt&#xFEFF; width; i++) {
+                for (int j = 0; j &lt&#xFEFF; height; j++) {
+                    Color c = im.getPixelReader().getColor(i, j);
+                    double red = Math.abs(1.0 - c.getRed());
+                    double green = Math.abs(1.0 - c.getGreen());
+                    double blue = Math.abs(1.0 - c.getBlue());
+                    negativeImage.getPixelWriter().setColor(i, j, Color.color(red, green, blue));
+                    displayImage.setImage(negativeImage);
+                }
+            }
+        } catch(IllegalArgumentException e) {
+            System.out.println("Illegal Argument");
+        }
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+
+    }
+}
+
+~~~~
+
+# lab8.fxml
+
+~~~~ XML
+&lt&#xFEFF;?xml version="1.0" encoding="UTF-8"?>
+
+&lt&#xFEFF;?import javafx.geometry.Insets?>
+&lt&#xFEFF;?import javafx.scene.control.Button?>
+&lt&#xFEFF;?import javafx.scene.image.ImageView?>
+&lt&#xFEFF;?import javafx.scene.layout.HBox?>
+&lt&#xFEFF;?import javafx.scene.layout.VBox?>
+
+
+&lt&#xFEFF;HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="arneyh.Lab8Controller">
+   &lt&#xFEFF;children>
+      &lt&#xFEFF;ImageView fx:id="displayImage" fitHeight="500.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true" />
+      &lt&#xFEFF;VBox prefHeight="500.0" prefWidth="150.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;Button fx:id="openButton" mnemonicParsing="false" onAction="#open" prefHeight="25.0" prefWidth="100.0" text="Open">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="saveButton" mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="100.0" text="Save">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="reloadButton" mnemonicParsing="false" onAction="#reload" prefHeight="25.0" prefWidth="100.0" text="Reload">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="grayscaleButton" mnemonicParsing="false" onAction="#grayscale" prefHeight="25.0" prefWidth="100.0" text="Grayscale">
+               &lt&#xFEFF;VBox.margin>
+                  &lt&#xFEFF;Insets bottom="10.0" />
+               &lt&#xFEFF;/VBox.margin>
+            &lt&#xFEFF;/Button>
+            &lt&#xFEFF;Button fx:id="negativeButton" mnemonicParsing="false" onAction="#negative" prefHeight="25.0" prefWidth="100.0" text="Negative" />
+         &lt&#xFEFF;/children>
+         &lt&#xFEFF;padding>
+            &lt&#xFEFF;Insets bottom="20.0" />
+         &lt&#xFEFF;/padding>
+      &lt&#xFEFF;/VBox>
+   &lt&#xFEFF;/children>
+&lt&#xFEFF;/HBox>
+
+~~~~
+
+!!! MINUS: -2 `.jar` file missing
+    The Canvas assignment required that you:
+    <blockquote><ul><li>Create an executable .jar and place it in your project folder</li></ul></blockquote>
+
+    I did not find the executable `.jar` file in your project. This could be because you didn't
+    generate it or because you didn't commit and push the file to your repository.
+    For your lab 9 submission, please be sure to generate the `.jar` file and place 
+    it in your project folder at the same level as the `src`, `lib`, `image`, and `JavaDoc`
+    folders and be sure it and your JavaDoc files are committed.
+
+
+!!! MINUS: -5 Instructor tests
+    * &#x02714; Uses `FileChooser` to select file
+    * &#x02714; Convert to grayscale
+    * &#x02714; Invert image
+    * &#x02714; Conversions apply to the displayed image (not the original)
+    * &#x02714; Reloads correctly
+    * &#x02714; Load .msoe file correctly
+    * &#x02714; Save .msoe file correctly
+    * &#x02714; Load .png file correctly
+    * &#x02714; Save .png file correctly
+    * &#x02714; Handled all encountered exceptions during testing
+    * &#x0274C; Unhandled exceptions:
+        - Cancel load dialog
+        - Cancel save dialog
+        - Load .msoe file with missing pixel
+        - Load .msoe file with row missing
+        - Reload before an image is loaded
+        - Save before an image is loaded
+        - Grayscale before an image is loaded
+    * &#x0274C; All but Load buttons disabled when no image loaded (no points lost for this, but it's an example of an improvement you could make to your UI for lab 9)
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>

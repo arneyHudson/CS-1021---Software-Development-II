@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="arneyh.Lab8Controller">
+   <children>
+      <VBox prefHeight="500.0" prefWidth="157.0">
+         <children>
+            <ImageView fx:id="displayImage" fitHeight="350.0" fitWidth="300.0" onMouseMoved="#coordinates" onTouchStationary="#coordinates" pickOnBounds="true" preserveRatio="true" />
+            <Label fx:id="coordinate" prefHeight="65.0" prefWidth="300.0" />
+            <Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="300.0" text="About: This program was created by Hudson Arney.">
+               <VBox.margin>
+                  <Insets left="4.0" />
+               </VBox.margin>
+            </Label>
+            <Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="300.0" text="It includes options to manipulate images of multiple">
+               <VBox.margin>
+                  <Insets left="4.0" />
+               </VBox.margin>
+            </Label>
+            <Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="293.0" text="types. You can also identify the coordinates of a certain">
+               <VBox.margin>
+                  <Insets left="4.0" />
+               </VBox.margin>
+            </Label>
+            <Label alignment="TOP_LEFT" prefHeight="20.0" prefWidth="246.0" text="pixel by hovering your mouse over the image.">
+               <VBox.margin>
+                  <Insets left="4.0" />
+               </VBox.margin>
+            </Label>
+         </children>
+      </VBox>
+      <VBox prefHeight="500.0" prefWidth="150.0">
+         <children>
+            <Button mnemonicParsing="false" onAction="#load" prefHeight="25.0" prefWidth="100.0" text="Open">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="saveButton" disable="true" mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="100.0" text="Save">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="reloadButton" disable="true" mnemonicParsing="false" onAction="#reload" prefHeight="25.0" prefWidth="100.0" text="Reload">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="grayscaleButton" disable="true" mnemonicParsing="false" onAction="#grayscale" prefHeight="25.0" prefWidth="100.0" text="Grayscale">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="negativeButton" disable="true" mnemonicParsing="false" onAction="#negative" prefHeight="25.0" prefWidth="100.0" text="Negative">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin></Button>
+            <Button fx:id="redButton" disable="true" mnemonicParsing="false" onAction="#red" prefHeight="25.0" prefWidth="100.0" text="Red">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="redGrayButton" disable="true" mnemonicParsing="false" onAction="#redGray" prefHeight="25.0" prefWidth="100.0" text="Red-Gray">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+            <Button fx:id="showFilterButton" disable="true" mnemonicParsing="false" onAction="#showOther" prefHeight="25.0" prefWidth="100.0" text="Show Filter">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
+         </children>
+         <padding>
+            <Insets bottom="20.0" />
+         </padding>
+      </VBox>
+   </children>
+</HBox>

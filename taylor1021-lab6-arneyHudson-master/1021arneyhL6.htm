@@ -1,0 +1,367 @@
+<meta charset="utf-8" lang="en">            <style class="fallback">body{visibility:hidden;}</style>
+<!---
+
+
+                       DOWNLOAD AND OPEN IN A BROWSER
+                          TO SEE PROPER FORMATTING
+
+
+--->
+**Lab 6: Exceptions**
+    Username: arneyh
+    Date: 01-24-2022
+    Course: CS1021
+    Submitted to: Dr. Chris Taylor
+
+!!! METRIcS: Instructor Feedback
+    | Earned | Possible | Criteria                                         |
+    | ------ | -------- | ------------------------------------------------ |
+    |   45   |    45    | Technical quality (see point deductions in code) |
+    |    4   |     4    | GUI similar to assignment                        |
+    |    4   |     4    | Only able to edit URL and Timeout text fields    |
+    |    3   |     3    | Correct initial URL                              |
+    |    4   |     4    | Correct initial timeout                          |
+    |    3   |     3    | Handlers connected on buttons and text fields    |
+    |    3   |     3    | Invalid timeout handled                          |
+    |    1   |     1    | Text field reset after invalid timeout entry     |
+    |    3   |     3    | Malformed URL handled                            |
+    |    1   |     1    | Text field reset after malformed URL entry       |
+    |    3   |     3    | Offer temporary timeout extension                |
+    |    1   |     1    | Offer temporary timeout extension only if desired|
+    |    2   |     2    | Retry after timeout extension                    |
+    |    1   |     1    | Does not make temporary timeout permanent        |
+    |    3   |     3    | Correctly handle unreachable host                |
+    |    1   |     1    | Text field only reset on malformed URL entry     |
+    |    3   |     3    | Correctly handle general IO exception            |
+    |   10   |    10    | Coding standard compliance and program clarity   |
+    |    5   |     5    | Following submission instructions                |
+
+    [Nicely Done](https://msoe.us/taylor/Nice)
+
+# Lab6.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 6 - Exceptions
+ * Name: Hudson Arney
+ * Created: 1/17/2022
+ * Updated: 1/24/2022
+ */
+
+package arneyh;
+
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import java.util.Objects;
+
+/**
+ * Lab5 Contains the driver as well as the method that displays the output
+ */
+public class Lab6 extends Application {
+
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("lab6.fxml")));
+        stage.setTitle("Website Tester");
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+}
+
+
+~~~~
+
+# Lab6Controller.java
+
+~~~~ Java
+/*
+ * Course: CS1021 - 021
+ * Winter 2022
+ * Lab 6 - Exceptions
+ * Name: Hudson Arney
+ * Created: 1/17/2022
+ * Updated: 1/24/2022
+ */
+
+package arneyh;
+
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import edu.msoe.se1021.Lab6.WebsiteTester;
+import javafx.event.ActionEvent;
+import java.io.IOException;
+import java.net.URL;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.ResourceBundle;
+
+/**
+ * Lab6 Controller Class
+ * Holds all the necessary FXML
+ */
+public class Lab6Controller implements Initializable {
+
+    @FXML private TextField urlTextField;
+    @FXML private TextField sizeTextField;
+    @FXML private TextField downloadTextField;
+    @FXML private TextField portTextField;
+    @FXML private TextField hostTextField;
+    @FXML private TextField timeoutTextField;
+    @FXML private TextArea website;
+    @FXML private Button analyzeButton;
+    @FXML private Button setButton;
+    WebsiteTester websiteTester = new WebsiteTester();
+
+~~~~ Java highlight
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+~~~~
+!!! FEEDBACK: `@FXML initialize()`
+    Alternatively, you could use the `@FXML` annotation on the
+    `initialize()` method which allows you to avoid even declaring
+    your controller class as `Initializable`.
+
+    When the FXML file is loaded, all of the `@FXML` objects are
+    created. Once that is complete, the
+
+    ~~~~ Java
+    @FXML
+    private void initialize() {
+        // ...
+    }
+    ~~~~
+
+    method is automatically called.
+
+~~~~ Java highlight
+        urlTextField.setText("https://google.com");
+~~~~
+!!! minus: -2 Did not set initial URL and Timeout values
+    The assignment required that you:
+    <blockquote>The program will __start with http://msoe.us/cs1021/lab6
+    as the default URL__. The timeout will be set to the default value from
+    the `WebsiteTester` class. The size, port, download time, and host
+    entries will be blank, as well as the text area containing the text
+    from the website.
+    </blockquote>
+
+~~~~ Java
+        timeoutTextField.setText((websiteTester.getTimeout()));
+
+        try {
+            websiteTester.openURL("https://google.com");
+        } catch (MalformedURLException e) {
+            Alert urlError = new Alert(Alert.AlertType.ERROR);
+            urlError.setHeaderText("URL ERROR");
+            urlError.setContentText("The URL entered in the text box is invalid");
+            urlTextField.setText("");
+        }
+    }
+
+    /**
+     * setTimeout Method used for the button to set a time limit to search for a website
+     * @param actionEvent actionEvent
+     */
+    @FXML
+    public void setTimeout(ActionEvent actionEvent) {
+        String text = timeoutTextField.getText();
+
+        try {
+            websiteTester.setTimeout(text);
+        } catch(NumberFormatException e) {
+            Alert timeoutError = new Alert(Alert.AlertType.ERROR);
+            timeoutError.setHeaderText("Invalid Timeout Error");
+            timeoutError.setContentText("Timeout must be greater than or equal to 0.");
+            timeoutError.showAndWait();
+            websiteTester.setTimeout(websiteTester.getTimeout());
+            timeoutTextField.setText(websiteTester.getTimeout());
+        }
+    }
+
+    @FXML
+    private void analyze(ActionEvent actionEvent) {
+        String url = urlTextField.getText();
+        try {
+            websiteTester.openURL(url);
+            websiteTester.openConnection();
+            websiteTester.downloadText();
+            sizeTextField.setText("" + websiteTester.getSize());
+            hostTextField.setText(websiteTester.getHostname());
+            downloadTextField.setText("" + websiteTester.getDownloadTime() + " ms");
+            portTextField.setText("" + websiteTester.getPort());
+            website.setText(websiteTester.getContent());
+        } catch(MalformedURLException e) {
+            Alert urlError = new Alert(Alert.AlertType.ERROR);
+            urlError.setHeaderText("URL ERROR");
+            urlError.setContentText("The URL entered in the text box is invalid");
+            urlError.showAndWait();
+            urlTextField.setText("");
+        } catch(SocketTimeoutException e) {
+            Alert socketError = new Alert(Alert.AlertType.CONFIRMATION);
+            socketError.setHeaderText("Wait longer?");
+            socketError.setContentText("There has been a timeout reaching the site. " +
+                    "Click OK to extend the timeout period");
+            socketError.showAndWait().ifPresent(response -> {
+                if(response == ButtonType.OK) {
+                    boolean invalidInput = true;
+
+                    do {
+                        TextInputDialog timeOut = new TextInputDialog();
+                        timeOut.setHeaderText("Set extended timeout");
+                        timeOut.setContentText("Desired timeout");
+                        timeOut.showAndWait();
+
+                        try {
+~~~~ Java highlight
+                            websiteTester.setTimeout(timeOut.getResult());
+                            timeoutTextField.setText(websiteTester.getTimeout());
+                            analyze(actionEvent);
+                            invalidInput = false;
+~~~~
+!!! minus: -1 Temporary time out should not be permanent
+    You should reset the time out value to the previous timeout after
+    setting the temporary timeout value and then retrying to retrieve
+    the page.
+
+~~~~ Java
+                        } catch(NumberFormatException exception) {
+                        }
+                    } while(invalidInput);
+                }
+            });
+
+        } catch(UnknownHostException e) {
+            Alert hostError = new Alert(Alert.AlertType.ERROR);
+            hostError.setHeaderText("Unknown Host Error");
+            hostError.setContentText("The host you are trying to reach does not exist");
+            hostError.showAndWait();
+~~~~ Java highlight
+        } catch (IOException e) {
+~~~~
+!!! minus: Handle specific exceptions when you can
+    The `downloadText()` method could throw `FileNotFoundException`s or
+    `IOException`s.  If you know a `FileNotFoundException` was thrown, you
+    could provide more specific feedback about what went wrong (rather than
+    the more generic `IOException`).
+
+~~~~ Java
+            Alert fileError = new Alert(Alert.AlertType.ERROR);
+            fileError.setHeaderText("File Error");
+            fileError.setContentText("Error: File not found on server\n" + urlTextField.getText());
+            fileError.showAndWait();
+        }
+    }
+
+}
+
+~~~~
+
+# lab6.fxml
+
+~~~~ XML
+&lt&#xFEFF;?xml version="1.0" encoding="UTF-8"?>
+
+&lt&#xFEFF;?import javafx.geometry.Insets?>
+&lt&#xFEFF;?import javafx.scene.control.Button?>
+&lt&#xFEFF;?import javafx.scene.control.Label?>
+&lt&#xFEFF;?import javafx.scene.control.TextArea?>
+&lt&#xFEFF;?import javafx.scene.control.TextField?>
+&lt&#xFEFF;?import javafx.scene.layout.HBox?>
+&lt&#xFEFF;?import javafx.scene.layout.Pane?>
+&lt&#xFEFF;?import javafx.scene.layout.VBox?>
+
+&lt&#xFEFF;Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="arneyh.Lab6Controller">
+   &lt&#xFEFF;children>
+      &lt&#xFEFF;VBox layoutY="12.0" prefHeight="210.0" prefWidth="600.0">
+         &lt&#xFEFF;children>
+            &lt&#xFEFF;HBox prefHeight="15.0" prefWidth="600.0">
+               &lt&#xFEFF;children>
+                  &lt&#xFEFF;Label text="URL">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="52.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+                  &lt&#xFEFF;TextField fx:id="urlTextField" onAction="#analyze" prefHeight="25.0" prefWidth="400.0" />
+                  &lt&#xFEFF;Button fx:id="analyzeButton" mnemonicParsing="false" onAction="#analyze" prefHeight="25.0" prefWidth="125.0" text="Analyze" />
+               &lt&#xFEFF;/children>
+            &lt&#xFEFF;/HBox>
+            &lt&#xFEFF;HBox prefHeight="23.0" prefWidth="600.0">
+               &lt&#xFEFF;children>
+                  &lt&#xFEFF;Label text="Size">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="50.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+~~~~ xml highlight
+                  &lt&#xFEFF;TextField fx:id="sizeTextField" prefWidth="100.0" />
+~~~~
+!!! minus: -1 Some text fields should be disabled
+    The assignment required that you:
+    <blockquote>
+    The user should only be able to edit the URL and Timeout text fields.
+    </blockquote>
+
+~~~~ xml
+                  &lt&#xFEFF;Label text="Download Time">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="95.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+                  &lt&#xFEFF;TextField fx:id="downloadTextField" prefWidth="250.0" />
+               &lt&#xFEFF;/children>
+            &lt&#xFEFF;/HBox>
+            &lt&#xFEFF;HBox prefHeight="25.0" prefWidth="600.0">
+               &lt&#xFEFF;children>
+                  &lt&#xFEFF;Label text="Port">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="50.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+                  &lt&#xFEFF;TextField fx:id="portTextField" prefHeight="25.0" prefWidth="100.0" />
+                  &lt&#xFEFF;Label text="Host">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="152.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+                  &lt&#xFEFF;TextField fx:id="hostTextField" prefWidth="250.0" />
+               &lt&#xFEFF;/children>
+            &lt&#xFEFF;/HBox>
+            &lt&#xFEFF;HBox prefHeight="39.0" prefWidth="600.0">
+               &lt&#xFEFF;children>
+                  &lt&#xFEFF;Label text="Timeout">
+                     &lt&#xFEFF;HBox.margin>
+                        &lt&#xFEFF;Insets left="30.0" />
+                     &lt&#xFEFF;/HBox.margin>
+                  &lt&#xFEFF;/Label>
+                  &lt&#xFEFF;TextField fx:id="timeoutTextField" onAction="#setTimeout" prefHeight="25.0" prefWidth="400.0" />
+                  &lt&#xFEFF;Button fx:id="setButton" mnemonicParsing="false" onAction="#setTimeout" prefHeight="25.0" prefWidth="125.0" text="Set" />
+               &lt&#xFEFF;/children>
+            &lt&#xFEFF;/HBox>
+         &lt&#xFEFF;/children>
+      &lt&#xFEFF;/VBox>
+      &lt&#xFEFF;TextArea fx:id="website" layoutX="3.0" layoutY="136.0" prefHeight="262.0" prefWidth="592.0" />
+   &lt&#xFEFF;/children>
+&lt&#xFEFF;/Pane>
+
+~~~~
+
+
+<!-- Markdeep: --><script src="https://csse.msoe.us/markdeep.js?graded"></script>
